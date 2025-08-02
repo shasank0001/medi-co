@@ -7,6 +7,7 @@ from models.schemas import (
 import os
 import json
 import uuid
+import re
 from datetime import datetime
 from typing import List, Optional
 import google.generativeai as genai
@@ -72,11 +73,37 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
                         print(f"❌ Error extracting text from page {page_num + 1}: {str(e)}")
                 
                 if extracted_text.strip():
-                    # Clean up the extracted text
-                    extracted_text = ' '.join(extracted_text.split())  # Normalize whitespace
-                    final_text = extracted_text[:5000]  # Limit to 5000 characters
+                    # Enhanced cleanup for medical documents
+                    extracted_text = extracted_text.strip()
+                    
+                    # Clean up common PDF artifacts while preserving medical formatting
+                    # Remove excessive whitespace but keep paragraph structure
+                    extracted_text = re.sub(r'\n\s*\n\s*\n+', '\n\n', extracted_text)  # Max 2 line breaks
+                    extracted_text = re.sub(r'[ \t]+', ' ', extracted_text)  # Normalize spaces
+                    extracted_text = re.sub(r'\n ', '\n', extracted_text)  # Remove space after newlines
+                    
+                    # Remove common PDF extraction artifacts
+                    lines = extracted_text.split('\n')
+                    cleaned_lines = []
+                    
+                    for line in lines:
+                        line = line.strip()
+                        # Skip very short lines that are likely artifacts (but keep meaningful short lines)
+                        if len(line) > 1 or line in ['-', '•', '*']:
+                            # Remove standalone numbers that are likely page numbers
+                            if not (line.isdigit() and len(line) <= 3):
+                                cleaned_lines.append(line)
+                    
+                    # Rejoin with proper spacing for medical documents
+                    final_text = '\n'.join(cleaned_lines)
+                    
+                    # Limit to reasonable size but keep more for medical documents (increased from 5000)
+                    if len(final_text) > 15000:
+                        final_text = final_text[:15000]
+                        final_text += "\n\n[Document truncated for processing...]"
+                    
                     print(f"✅ PyPDF2 extraction successful. Final text length: {len(final_text)} characters")
-                    print(f"📄 First 200 chars of extracted text: {final_text[:200]}...")
+                    print(f"📄 First 300 chars of extracted text: {final_text[:300]}...")
                     return final_text
                 else:
                     error_msg = f"[PDF file '{filename}' processed but no readable text found. This may be a scanned document or image-based PDF. Please use a text-based PDF or convert to text format for better AI analysis.]"

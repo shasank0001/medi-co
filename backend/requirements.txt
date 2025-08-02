@@ -4,3 +4,4 @@ pandas
 pydantic
 google-generativeai
 python-dotenv
+PyPDF2
