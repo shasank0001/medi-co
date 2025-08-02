@@ -1,0 +1,60 @@
+PATIENT MEDICAL RECORD
+
+Patient Name: John Doe
+Patient ID: PT001
+Date of Birth: 01/15/1980
+Age: 44 years old
+Gender: Male
+
+CHIEF COMPLAINT:
+Patient presents with persistent cough and shortness of breath for the past 2 weeks.
+
+MEDICAL HISTORY:
+- Hypertension diagnosed in 2018, well controlled with medication
+- Type 2 Diabetes diagnosed in 2020, managed with metformin
+- No known allergies
+
+CURRENT MEDICATIONS:
+1. Lisinopril 10mg daily for hypertension
+2. Metformin 500mg twice daily for diabetes
+3. Multivitamin daily
+
+VITAL SIGNS:
+- Blood Pressure: 135/85 mmHg
+- Heart Rate: 82 bpm
+- Temperature: 99.2°F
+- Respiratory Rate: 20/min
+- Oxygen Saturation: 96% on room air
+
+PHYSICAL EXAMINATION:
+- General: Alert and oriented, mild respiratory distress
+- Chest: Bilateral lower lobe crackles, no wheezing
+- Heart: Regular rate and rhythm, no murmurs
+- Abdomen: Soft, non-tender
+
+DIAGNOSTIC TESTS:
+- Chest X-ray: Bilateral lower lobe infiltrates consistent with pneumonia
+- Complete Blood Count: Elevated white blood cell count (12,500/μL)
+- Blood glucose: 145 mg/dL
+
+ASSESSMENT AND PLAN:
+1. Community-acquired pneumonia
+   - Start antibiotic therapy with amoxicillin-clavulanate 875mg twice daily
+   - Follow up in 3-5 days if symptoms worsen
+   
+2. Diabetes management
+   - Continue current metformin regimen
+   - Monitor blood glucose closely during illness
+   
+3. Hypertension
+   - Continue lisinopril
+   - Recheck blood pressure at next visit
+
+FOLLOW-UP:
+- Return to clinic in 1 week
+- Chest X-ray in 2 weeks to assess resolution
+- Annual diabetes and hypertension follow-up scheduled
+
+Dr. Sarah Johnson, MD
+Internal Medicine
+Date: January 20, 2025
