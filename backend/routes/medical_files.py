@@ -16,7 +16,7 @@ from utils.database import (
     init_database, add_patient_to_db, get_all_patient_ids, 
     get_patient_info, update_patient_activity, patient_exists_in_db
 )
-
+import subprocess
 # Load environment variables
 load_dotenv()
 
@@ -171,7 +171,7 @@ def generate_ai_summary(text: str, summary_type: str = "comprehensive") -> dict:
             }
         
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = f"""
         You are a medical AI assistant. Analyze the following medical document and provide a structured summary.
@@ -315,6 +315,39 @@ async def get_patients_for_doctor():
     except Exception as e:
         print(f"❌ Failed to get patients for doctor: {str(e)}")
         return {"patients": [], "total_patients": 0, "patients_with_files": 0}
+def convert_to_structured_using_granite(info):
+    """
+    Converts unstructured information into structured JSON output using Granite 3.3 via Ollama.
+    """
+    
+    # Prompt for the model
+    prompt = f"""
+    You are a data parser. Convert the following information into a clean, structured JSON format.
+    Ensure all relevant details are captured accurately.
+
+    Information:
+    {info}
+
+    Respond ONLY with valid JSON.
+    """
+
+    # Run Ollama command
+    result = subprocess.run(
+        ["ollama", "run", "granite3.3:2b"],
+        input=prompt.encode("utf-8"),
+        capture_output=True
+    )
+
+    # Get model output
+    output_text = result.stdout.decode("utf-8").strip()
+
+    # Parse JSON safely
+    try:
+        structured_data = json.loads(output_text)
+    except json.JSONDecodeError:
+        raise ValueError(f"Model did not return valid JSON:\n{output_text}")
+
+    return structured_data
 
 @router.get("/patients/{patient_id}", summary="Get patient profile")
 async def get_patient_profile(patient_id: str):
@@ -682,6 +715,74 @@ async def register_new_patient(
     except Exception as e:
         print(f"❌ Failed to register patient: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to register patient: {str(e)}")
+def read_medical_file(file_path):
+    """Reads text from .txt, .pdf, or .docx medical files."""
+    ext = os.path.splitext(file_path)[-1].lower()
+
+    if ext == ".txt":
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+    elif ext == ".pdf":
+        text = ""
+        with open(file_path, "rb") as f:
+            reader = PyPDF2.PdfReader(f)
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+        return text
+
+    elif ext == ".docx":
+        doc = docx.Document(file_path)
+        return "\n".join([para.text for para in doc.paragraphs])
+
+    else:
+        raise ValueError(f"Unsupported file format: {ext}")
+
+
+def summarize_medical_files_using_granite3(file_paths):
+    """
+    Summarizes multiple medical files into a structured JSON summary using Granite 3.3 via Ollama.
+    """
+    # Read all files
+    all_text = ""
+    for file in file_paths:
+        all_text += f"\n--- File: {os.path.basename(file)} ---\n"
+        all_text += read_medical_file(file)
+
+    # Prompt for summarization
+    prompt = f"""
+    You are a medical summarization assistant.
+    Read the following patient medical files and provide a concise summary.
+    Include:
+    - Patient details (name, age, gender if available)
+    - Key diagnoses
+    - Medications
+    - Lab results
+    - Doctor notes
+    - Next steps or recommendations
+
+    Return the output ONLY as a JSON object.
+
+    Medical Files Content:
+    {all_text}
+    """
+
+    # Run Ollama with Granite 3.3
+    result = subprocess.run(
+        ["ollama", "run", "granite3.3"],
+        input=prompt.encode("utf-8"),
+        capture_output=True
+    )
+
+    output_text = result.stdout.decode("utf-8").strip()
+
+    # Parse JSON safely
+    try:
+        structured_summary = json.loads(output_text)
+    except json.JSONDecodeError:
+        raise ValueError(f"Model did not return valid JSON:\n{output_text}")
+
+    return structured_summary
 
 @router.post("/patients/{patient_id}/chat", summary="Chat with AI about patient")
 async def chat_with_ai_about_patient(

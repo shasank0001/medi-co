@@ -56,7 +56,7 @@ export function AppSidebar() {
                 <Stethoscope className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-foreground">Medi-Care AI</h1>
+                <h1 className="text-lg font-semibold text-foreground">medi-co</h1>
                 <p className="text-xs text-muted-foreground">Clinical Decision Support</p>
               </div>
             </div>
